@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Controller API Sync",
+  "description": "Analyzes changes to backend controller files and suggests updates to API documentation or reminds you to update corresponding frontend API calls.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/src/controllers/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A backend controller file was just modified. Please analyze the changes and:\n\n1. Identify any new, modified, or removed API endpoints (routes, request/response types, parameters)\n2. Suggest specific updates needed for API documentation (endpoint descriptions, request/response schemas, examples)\n3. Check if there are corresponding frontend API calls in the frontend/src folder that may need to be updated to match the backend changes\n4. Remind the user about any breaking changes that could affect frontend consumers\n\nBe specific about what changed and what actions the user should take to keep the API documentation and frontend in sync."
+  }
+}

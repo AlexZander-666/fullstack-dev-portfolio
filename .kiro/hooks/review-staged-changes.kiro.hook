@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Pre-Commit Code Review",
+  "description": "When you send a message containing \"review for commit\", this hook analyzes all staged git changes and provides a code review with suggestions for improvements before committing.",
+  "version": "1",
+  "when": {
+    "type": "userPrompt"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The user wants a code review before committing. Run `git diff --cached` to get all staged changes, then analyze the diff and provide a thorough code review. Include: 1) A summary of the changes, 2) Potential bugs or issues, 3) Code style and best practice suggestions, 4) Security considerations if applicable, 5) Performance concerns if any, 6) Overall assessment and whether the changes are ready to commit."
+  }
+}

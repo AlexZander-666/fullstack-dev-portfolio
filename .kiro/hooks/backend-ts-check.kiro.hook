@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Backend TypeScript Type Check",
+  "description": "Runs the TypeScript compiler to check for type errors when a TypeScript file in backend/src is saved, and reports any issues found.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/src/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd backend && npx tsc --noEmit"
+  }
+}

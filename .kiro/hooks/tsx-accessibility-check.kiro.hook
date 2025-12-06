@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "TSX Accessibility Checker",
+  "description": "Checks TSX components in frontend/src/app for accessibility issues and suggests improvements for ARIA labels, keyboard navigation, and semantic HTML when files are saved",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "frontend/src/app/**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the edited TSX component for accessibility issues. Analyze and provide specific suggestions for:\n1. ARIA labels - Check if interactive elements have proper aria-label, aria-labelledby, or aria-describedby attributes\n2. Keyboard navigation - Verify that all interactive elements are keyboard accessible and have proper tabIndex where needed\n3. Semantic HTML - Identify opportunities to use semantic HTML5 elements (nav, main, article, section, header, footer, button, etc.) instead of generic divs\n4. Focus management - Check for proper focus indicators and focus management patterns\n5. Screen reader compatibility - Ensure content is properly structured for screen readers\n\nProvide actionable recommendations with code examples where appropriate."
+  }
+}

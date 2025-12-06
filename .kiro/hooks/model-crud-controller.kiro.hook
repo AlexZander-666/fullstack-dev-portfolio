@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Generate CRUD Controller",
+  "description": "When a new model file is created in backend/src/models, offers to generate a corresponding controller with basic CRUD operations in the controllers folder.",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "backend/src/models/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new model file was created at {{filePath}}. Offer to generate a corresponding controller with basic CRUD operations (create, read, update, delete) in the backend/src/controllers folder. The controller should follow the naming convention used by existing controllers (e.g., posts.controller.ts, projects.controller.ts) and include standard CRUD endpoints that work with the new model."
+  }
+}

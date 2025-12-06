@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Run Backend Tests",
+  "description": "Runs the backend tests and summarizes the results, highlighting any failures.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the backend tests using `cd backend && npm test`. After the tests complete, provide a clear summary of the results including: total tests run, tests passed, tests failed. If there are any failures, highlight them prominently with the test name, file location, and error message. If all tests pass, confirm success."
+  }
+}

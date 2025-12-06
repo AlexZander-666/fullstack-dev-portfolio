@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Frontend ESLint Check",
+  "description": "Runs ESLint on saved files in frontend/src to check for code style issues and suggests fixes if problems are found.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "frontend/src/**/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A file in the frontend/src folder was just saved. Run ESLint on the saved file using `npx eslint` from the frontend directory to check for code style issues. If any problems are found, analyze the ESLint output and suggest specific fixes for each issue. If no issues are found, briefly confirm the file passes linting."
+  }
+}
