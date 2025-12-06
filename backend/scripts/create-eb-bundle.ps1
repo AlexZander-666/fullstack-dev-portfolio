@@ -44,10 +44,43 @@ if (Test-Path ".ebextensions") {
 
 Write-Host "✓ Files copied" -ForegroundColor Green
 
-# 创建 ZIP
+# 创建 ZIP - 使用 .NET 方法确保跨平台兼容性
 Write-Host "🗜️ Creating ZIP bundle..." -ForegroundColor Yellow
-Compress-Archive -Path "$tempDir\*" -DestinationPath "eb-bundle.zip" -Force
-Write-Host "✓ Bundle created: eb-bundle.zip" -ForegroundColor Green
+
+# 进入临时目录，从内部创建 ZIP（避免路径分隔符问题）
+Push-Location $tempDir
+try {
+    # 使用 PowerShell 7+ 的 Compress-Archive 或 .NET 方法
+    $files = Get-ChildItem -Recurse -File
+    $zipPath = Join-Path $backendDir "eb-bundle.zip"
+    
+    # 加载 .NET 压缩类
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    
+    # 创建 ZIP 文件
+    if (Test-Path $zipPath) {
+        Remove-Item $zipPath -Force
+    }
+    
+    $zip = [System.IO.Compression.ZipFile]::Open($zipPath, 'Create')
+    
+    foreach ($file in $files) {
+        $relativePath = $file.FullName.Substring($PWD.Path.Length + 1)
+        # 强制使用正斜杠
+        $entryName = $relativePath -replace '\\', '/'
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $file.FullName, $entryName) | Out-Null
+    }
+    
+    $zip.Dispose()
+    
+    Write-Host "✓ Bundle created with forward slashes (Linux-compatible)" -ForegroundColor Green
+} catch {
+    Write-Host "❌ ZIP creation failed: $_" -ForegroundColor Red
+    Pop-Location
+    exit 1
+} finally {
+    Pop-Location
+}
 
 # 清理临时目录
 Remove-Item $tempDir -Recurse -Force
@@ -59,7 +92,7 @@ Write-Host "   File: eb-bundle.zip" -ForegroundColor White
 Write-Host "   Size: $([math]::Round($size, 2)) MB" -ForegroundColor White
 Write-Host "`n📋 Next steps:" -ForegroundColor Cyan
 Write-Host "   1. Go to AWS Elastic Beanstalk Console"
-Write-Host "   2. Create Application > Web server environment"
-Write-Host "   3. Platform: Node.js 20"
-Write-Host "   4. Upload eb-bundle.zip"
-Write-Host "   5. Configure environment variables (see .env.production.example)"
+Write-Host "   2. Upload and Deploy > Choose file > eb-bundle.zip"
+Write-Host "   3. Version label: v1.0.3-linux-compatible"
+Write-Host "   4. Click 'Deploy'"
+Write-Host "`n💡 This bundle uses forward slashes for Linux compatibility"

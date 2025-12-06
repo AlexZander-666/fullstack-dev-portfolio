@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -124,9 +125,9 @@ export default function AdminLoginPage() {
 
         {/* Back Link */}
         <p className="text-center mt-6 text-stone-500 text-sm">
-          <a href="/" className="hover:text-[#d97757] transition-colors">
+          <Link href="/" className="hover:text-[#d97757] transition-colors">
             ← 返回首页
-          </a>
+          </Link>
         </p>
       </div>
     </div>

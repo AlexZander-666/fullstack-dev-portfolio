@@ -21,25 +21,20 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 
 export function useAuth() {
   const router = useRouter();
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    token: null,
-    isLoading: true,
-    isAuthenticated: false,
+  const [state, setState] = useState<AuthState>(() => {
+    const storedToken =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+    return {
+      user: null,
+      token: storedToken,
+      isLoading: Boolean(storedToken),
+      isAuthenticated: false,
+    };
   });
 
-  // 初始化时从 localStorage 读取 token
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      fetchCurrentUser(token);
-    } else {
-      setState((prev) => ({ ...prev, isLoading: false }));
-    }
-  }, []);
-
   // 获取当前用户信息
-  const fetchCurrentUser = async (token: string) => {
+  const fetchCurrentUser = useCallback(async (token: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -63,7 +58,7 @@ export function useAuth() {
           isAuthenticated: false,
         });
       }
-    } catch (error) {
+    } catch {
       localStorage.removeItem("token");
       setState({
         user: null,
@@ -72,7 +67,17 @@ export function useAuth() {
         isAuthenticated: false,
       });
     }
-  };
+  }, []);
+
+  // 初始化时从 localStorage 读取 token
+  useEffect(() => {
+    if (!state.token) {
+      return;
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- effect is responsible for bootstrapping auth once on mount
+    fetchCurrentUser(state.token);
+  }, [state.token, fetchCurrentUser]);
 
   // 登录
   const login = useCallback(async (email: string, password: string) => {

@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Frontend (Next.js 13 App Router)
 
-## Getting Started
+This package contains the marketing site, blog, admin console, contact form, and
+experimental playground pages for the full-stack developer portfolio.
 
-First, run the development server:
+### Scripts
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev      # Start Next.js dev server on http://localhost:3000
+npm run build    # Create production build (.next)
+npm run start    # Serve the production build
+npm run lint     # next lint (uses eslint.config.mjs)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Directory highlights
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+├── app/
+│   ├── page.tsx            # Landing page
+│   ├── blog/               # Blog listing + detail views
+│   ├── contact/            # Contact form page
+│   ├── projects/           # Project highlights
+│   ├── admin/              # Admin dashboard routes
+│   └── playground/claude-code/page.tsx  # Claude Code styled showcase
+├── components/             # UI building blocks grouped by domain
+├── hooks/                  # React Query + form helpers
+├── lib/                    # API clients/fetch helpers
+└── types/                  # Shared TS interfaces mirroring backend models
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Styling is handled through Tailwind CSS v4 with custom inline themes defined in
+`src/app/globals.css`. Iconography comes from `lucide-react`.
 
-## Learn More
+### Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+Create `.env.local` from `.env.example` and configure at least:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Key | Description |
+|-----|-------------|
+| `NEXT_PUBLIC_API_URL` | Points to the Express API (default `http://localhost:5000/api`). |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### API connectivity
 
-## Deploy on Vercel
+All API calls should go through the helpers in `src/lib`. They automatically use
+`NEXT_PUBLIC_API_URL`, attach JSON headers, and centralize error handling so the
+admin dashboard and marketing components behave consistently.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For more background on the overall architecture and deployment paths, check
+[`docs/architecture.md`](../docs/architecture.md) and
+[`docs/deployment/aws.md`](../docs/deployment/aws.md).
