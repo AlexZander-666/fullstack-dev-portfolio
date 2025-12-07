@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Mail, Github, Linkedin, MapPin } from "lucide-react";
 import ContactForm from "@/components/contact/ContactForm";
+import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "联系我",
@@ -11,20 +12,20 @@ const contactInfo = [
   {
     icon: Mail,
     label: "邮箱",
-    value: "hello@example.com",
-    href: "mailto:hello@example.com",
+    value: siteConfig.email,
+    href: `mailto:${siteConfig.email}`,
   },
   {
     icon: Github,
     label: "GitHub",
-    value: "github.com/alex",
-    href: "https://github.com",
+    value: siteConfig.github,
+    href: siteConfig.github,
   },
   {
     icon: Linkedin,
     label: "LinkedIn",
-    value: "linkedin.com/in/alex",
-    href: "https://linkedin.com",
+    value: siteConfig.linkedin,
+    href: siteConfig.linkedin,
   },
   {
     icon: MapPin,

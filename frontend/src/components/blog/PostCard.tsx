@@ -1,4 +1,6 @@
+import { memo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, ArrowRight } from "lucide-react";
 import type { Post } from "@/types";
 
@@ -15,16 +17,20 @@ function formatDate(dateString: string): string {
   });
 }
 
-export default function PostCard({ post }: PostCardProps) {
+function PostCard({ post }: PostCardProps) {
   return (
     <article className="group bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
       {/* Cover Image */}
       {post.coverImage && (
         <Link href={`/blog/${post.slug}`} className="block relative h-48 overflow-hidden">
-          <img
+          <Image
             src={post.coverImage}
             alt={post.title}
+            width={800}
+            height={400}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            sizes="(min-width: 1024px) 384px, (min-width: 768px) 320px, 100vw"
           />
         </Link>
       )}
@@ -76,3 +82,5 @@ export default function PostCard({ post }: PostCardProps) {
     </article>
   );
 }
+
+export default memo(PostCard);

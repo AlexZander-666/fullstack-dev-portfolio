@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
+import xss from "xss";
 import { ContactMessage } from "../models/ContactMessage";
+import { sendContactNotification } from "../utils/email";
+import logger from "../utils/logger";
 
 /**
  * 提交联系消息
@@ -13,14 +16,20 @@ export const submitContact = async (
     const { name, email, message } = req.body;
 
     const contactMessage = await ContactMessage.create({
-      name,
-      email,
-      message,
+      name: xss(name),
+      email: xss(email),
+      message: xss(message),
       read: false,
     });
 
     // TODO: 可选 - 发送邮件通知
-    // await sendEmailNotification(contactMessage);
+    if (process.env.ADMIN_EMAIL) {
+      try {
+        await sendContactNotification({ name, email, message });
+      } catch (error) {
+        logger.error(`Failed to send contact notification: ${(error as Error).message}`);
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -43,11 +52,24 @@ export const getContactMessages = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const messages = await ContactMessage.find().sort({ createdAt: -1 });
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const skip = (page - 1) * limit;
+
+    const [messages, total] = await Promise.all([
+      ContactMessage.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+      ContactMessage.countDocuments(),
+    ]);
 
     res.json({
       success: true,
       data: messages,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     next(error);

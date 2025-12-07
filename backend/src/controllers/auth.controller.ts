@@ -3,6 +3,15 @@ import { User } from "../models/User";
 import { generateToken } from "../utils/jwt";
 import { ValidationError, UnauthorizedError } from "../middleware/error.middleware";
 
+const setTokenCookie = (res: Response, token: string) => {
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
+
 /**
  * 登录
  */
@@ -20,7 +29,7 @@ export const login = async (
     }
 
     // 查找用户
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+passwordHash");
     if (!user) {
       throw UnauthorizedError("Invalid email or password");
     }
@@ -38,11 +47,12 @@ export const login = async (
       role: user.role,
     });
 
+    setTokenCookie(res, token);
+
     // 返回响应
     res.json({
       success: true,
       data: {
-        token,
         user: {
           _id: user._id,
           email: user.email,
@@ -103,11 +113,18 @@ export const refreshToken = async (
       role: req.user.role,
     });
 
-    res.json({
-      success: true,
-      data: { token },
-    });
+    setTokenCookie(res, token);
+
+    res.json({ success: true });
   } catch (error) {
     next(error);
   }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  res.clearCookie("token");
+  res.status(200).json({ success: true });
 };

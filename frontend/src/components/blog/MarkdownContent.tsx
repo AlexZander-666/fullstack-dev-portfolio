@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -36,16 +37,32 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
             <p className="text-stone-700 leading-relaxed mb-4">{children}</p>
           ),
           // 链接
-          a: ({ href, children }) => (
-            <a
-              href={href}
-              className="text-[#d97757] hover:underline"
-              target={href?.startsWith("http") ? "_blank" : undefined}
-              rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
-            >
-              {children}
-            </a>
-          ),
+          a: ({ href, children }) => {
+            let safeHref = href || "#";
+            try {
+              const url = new URL(safeHref, window.location.origin);
+              if (!["http:", "https:"].includes(url.protocol)) {
+                safeHref = "#";
+              } else {
+                safeHref = url.toString();
+              }
+            } catch {
+              safeHref = "#";
+            }
+
+            const isExternal = safeHref.startsWith("http");
+
+            return (
+              <a
+                href={safeHref}
+                target={isExternal ? "_blank" : undefined}
+                rel={isExternal ? "noopener noreferrer" : undefined}
+                className="text-[#d97757] hover:underline"
+              >
+                {children}
+              </a>
+            );
+          },
           // 代码块
           pre: ({ children }) => (
             <pre className="bg-[#1e1e1e] rounded-xl p-4 overflow-x-auto my-6">
@@ -82,14 +99,18 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
             </ol>
           ),
           // 图片
-          img: ({ src, alt }) => (
-            <img
-              src={src}
-              alt={alt || ""}
-              className="rounded-xl my-6 w-full"
-              loading="lazy"
-            />
-          ),
+          img: ({ src, alt }) =>
+            src ? (
+              <span className="block relative w-full h-64 md:h-80 my-6">
+                <Image
+                  src={src}
+                  alt={alt || ""}
+                  fill
+                  className="object-contain rounded-xl"
+                  sizes="(min-width: 1024px) 768px, 100vw"
+                />
+              </span>
+            ) : null,
           // 分割线
           hr: () => <hr className="border-stone-200 my-8" />,
         }}

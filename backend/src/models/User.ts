@@ -24,7 +24,17 @@ const UserSchema = new Schema<IUser>(
     passwordHash: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
+      minlength: [12, "Password must be at least 12 characters"],
+      select: false,
+      validate: {
+        validator: function (v: string) {
+          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/.test(
+            v
+          );
+        },
+        message:
+          "Password must contain at least one uppercase, lowercase, number, and special character",
+      },
     },
     name: {
       type: String,
@@ -59,8 +69,5 @@ UserSchema.methods.comparePassword = async function (
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };
-
-// 索引
-UserSchema.index({ email: 1 });
 
 export const User = mongoose.model<IUser>("User", UserSchema);

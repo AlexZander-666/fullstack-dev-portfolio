@@ -84,6 +84,8 @@ powershell -ExecutionPolicy Bypass -File scripts/create-eb-bundle.ps1
 | `NODE_ENV` | `production` |
 | `PORT` | `5000` |
 | `MONGODB_URI` | `mongodb+srv://...` (步骤1获取的) |
+| `MONGODB_SEEDLIST` | (可选) DNS 有问题时，提供 IP 或 host:port 逗号分隔 |
+| `MONGODB_REPLICA_SET` | (可选) 自定义副本集名称，默认 `atlas-<subdomain>-shard-0` |
 | `JWT_SECRET` | `<64位随机字符串>` |
 | `JWT_EXPIRES_IN` | `7d` |
 | `CORS_ORIGIN` | `https://www.zbw.life` |
@@ -105,6 +107,8 @@ http://zbw-life-backend-prod.eba-xxxxx.us-east-1.elasticbeanstalk.com/api/health
 ```
 
 **记录这个域名**，下一步需要用到。
+
+> EB 包中包含 `.platform` 目录：预安装 Node.js 20.x、部署后自动健康检查、Nginx 配置修复与探测阻断。
 
 ---
 

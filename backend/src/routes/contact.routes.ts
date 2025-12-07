@@ -3,6 +3,8 @@ import { submitContact, getContactMessages, markAsRead } from "../controllers/co
 import { authenticate } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { contactSchema } from "../schemas/contact.schema";
+import { contactLimiter } from "../middleware/rateLimit.middleware";
+import { validateObjectId } from "../middleware/validateParams.middleware";
 
 const router = Router();
 
@@ -11,7 +13,7 @@ const router = Router();
  * @desc    提交联系消息
  * @access  Public
  */
-router.post("/", validate(contactSchema), submitContact);
+router.post("/", contactLimiter, validate(contactSchema), submitContact);
 
 /**
  * @route   GET /api/contact
@@ -25,6 +27,6 @@ router.get("/", authenticate, getContactMessages);
  * @desc    标记消息为已读
  * @access  Private (Admin)
  */
-router.patch("/:id/read", authenticate, markAsRead);
+router.patch("/:id/read", authenticate, validateObjectId(), markAsRead);
 
 export default router;

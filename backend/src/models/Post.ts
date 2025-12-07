@@ -55,7 +55,6 @@ const PostSchema = new Schema<IPost>(
 );
 
 // 索引
-PostSchema.index({ slug: 1 });
 PostSchema.index({ published: 1, createdAt: -1 });
 PostSchema.index({ tags: 1 });
 

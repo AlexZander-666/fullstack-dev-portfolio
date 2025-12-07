@@ -2,87 +2,95 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-
-interface User {
-  _id: string;
-  email: string;
-  name: string;
-  role: string;
-}
+import { User } from "@/types";
+import { API_BASE_URL } from "@/lib/api";
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
 export function useAuth() {
   const router = useRouter();
-  const [state, setState] = useState<AuthState>(() => {
-    const storedToken =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-    return {
-      user: null,
-      token: storedToken,
-      isLoading: Boolean(storedToken),
-      isAuthenticated: false,
-    };
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    isLoading: true,
+    isAuthenticated: false,
   });
 
   // 获取当前用户信息
-  const fetchCurrentUser = useCallback(async (token: string) => {
+  const fetchCurrentUser = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
 
       if (response.ok) {
         const data = await response.json();
         setState({
           user: data.data,
-          token,
           isLoading: false,
           isAuthenticated: true,
         });
+        return;
+      }
+    } catch {
+      // ignore and fall through
+    }
+
+    setState({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+    });
+  }, []);
+
+  // 初始化时检查会话
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- effect is responsible for bootstrapping auth once on mount
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
+
+  const refreshSession = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        await fetchCurrentUser();
       } else {
-        // Token 无效，清除
-        localStorage.removeItem("token");
         setState({
           user: null,
-          token: null,
           isLoading: false,
           isAuthenticated: false,
         });
       }
     } catch {
-      localStorage.removeItem("token");
       setState({
         user: null,
-        token: null,
         isLoading: false,
         isAuthenticated: false,
       });
     }
-  }, []);
+  }, [fetchCurrentUser]);
 
-  // 初始化时从 localStorage 读取 token
   useEffect(() => {
-    if (!state.token) {
+    if (!state.isAuthenticated) {
       return;
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- effect is responsible for bootstrapping auth once on mount
-    fetchCurrentUser(state.token);
-  }, [state.token, fetchCurrentUser]);
+    const interval = setInterval(refreshSession, 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [state.isAuthenticated, refreshSession]);
 
   // 登录
   const login = useCallback(async (email: string, password: string) => {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
@@ -93,10 +101,8 @@ export function useAuth() {
       throw new Error(data.error?.message || "登录失败");
     }
 
-    localStorage.setItem("token", data.data.token);
     setState({
       user: data.data.user,
-      token: data.data.token,
       isLoading: false,
       isAuthenticated: true,
     });
@@ -106,10 +112,15 @@ export function useAuth() {
 
   // 登出
   const logout = useCallback(() => {
-    localStorage.removeItem("token");
+    fetch(`${API_BASE_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {
+      // Ignore logout failures on client
+    });
+
     setState({
       user: null,
-      token: null,
       isLoading: false,
       isAuthenticated: false,
     });

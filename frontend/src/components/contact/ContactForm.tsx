@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { submitContact } from "@/lib/api";
 
 const contactSchema = z.object({
   name: z.string().min(1, "请输入您的姓名").max(100, "姓名过长"),
@@ -17,6 +18,7 @@ type ContactFormData = z.infer<typeof contactSchema>;
 export default function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -28,30 +30,22 @@ export default function ContactForm() {
   });
 
   const onSubmit = async (data: ContactFormData) => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     setStatus("loading");
     setErrorMessage("");
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/contact`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error?.message || "发送失败，请稍后重试");
-      }
+      await submitContact(data);
 
       setStatus("success");
       reset();
     } catch (error) {
       setStatus("error");
       setErrorMessage(error instanceof Error ? error.message : "发送失败，请稍后重试");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,7 +138,7 @@ export default function ContactForm() {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={status === "loading"}
+        disabled={status === "loading" || isSubmitting}
         className="w-full flex items-center justify-center px-8 py-4 bg-[#1a1a1a] text-white rounded-xl font-medium text-lg hover:bg-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {status === "loading" ? (

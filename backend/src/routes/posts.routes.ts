@@ -9,6 +9,7 @@ import {
 import { authenticate, optionalAuthenticate } from "../middleware/auth.middleware";
 import { validate, validatePagination } from "../middleware/validate.middleware";
 import { createPostSchema, updatePostSchema, postQuerySchema } from "../schemas/post.schema";
+import { validateObjectId } from "../middleware/validateParams.middleware";
 
 const router = Router();
 
@@ -44,13 +45,13 @@ router.post("/", authenticate, validate(createPostSchema), createPost);
  * @desc    更新文章
  * @access  Private (Admin)
  */
-router.put("/:id", authenticate, validate(updatePostSchema), updatePost);
+router.put("/:id", authenticate, validateObjectId(), validate(updatePostSchema), updatePost);
 
 /**
  * @route   DELETE /api/posts/:id
  * @desc    删除文章
  * @access  Private (Admin)
  */
-router.delete("/:id", authenticate, deletePost);
+router.delete("/:id", authenticate, validateObjectId(), deletePost);
 
 export default router;

@@ -2,21 +2,33 @@
   "mcpServers": {
     "git": {
       "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "C:\\Users\\14774\\Desktop\\AlexCode\\frontend"],
+      "args": [
+        "mcp-server-git",
+        "--repository",
+        "C:\\Users\\14774\\Desktop\\AlexCode\\frontend"
+      ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
       "disabled": false,
-      "autoApprove": ["git_status", "git_diff_unstaged", "git_log"]
+      "autoApprove": [
+        "git_status",
+        "git_diff_unstaged",
+        "git_log"
+      ]
     },
     "fetch": {
       "command": "uvx",
-      "args": ["mcp-server-fetch"],
+      "args": [
+        "mcp-server-fetch"
+      ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "fetch"
+      ]
     }
   }
 }

@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import { Post } from "../models/Post";
 import { NotFoundError, ValidationError } from "../middleware/error.middleware";
 
+const escapeRegex = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /**
  * 获取文章列表（支持分页、过滤）
  */
@@ -32,9 +35,10 @@ export const getPosts = async (
 
     // 搜索
     if (req.query.search) {
+      const sanitizedSearch = escapeRegex(req.query.search as string);
       query.$or = [
-        { title: { $regex: req.query.search, $options: "i" } },
-        { content: { $regex: req.query.search, $options: "i" } },
+        { title: { $regex: sanitizedSearch, $options: "i" } },
+        { content: { $regex: sanitizedSearch, $options: "i" } },
       ];
     }
 
@@ -152,10 +156,17 @@ export const updatePost = async (
 
     // 如果更新了标题，重新生成 slug
     if (updates.title) {
-      updates.slug = updates.title
+      const newSlug = updates.title
         .toLowerCase()
         .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-")
-        .replace(/^-|-$/g, "");
+        .replace(/(^-|-$)/g, "");
+
+      const existingPost = await Post.findOne({ slug: newSlug, _id: { $ne: id } });
+      if (existingPost) {
+        throw ValidationError("A post with this title already exists");
+      }
+
+      updates.slug = newSlug;
     }
 
     const post = await Post.findByIdAndUpdate(id, updates, {

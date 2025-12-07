@@ -28,7 +28,8 @@ export default function TypewriterTerminal() {
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [visibleLines]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- terminalLines is static data for the animation
+  }, [visibleLines, terminalLines.length]);
 
   return (
     <div className="w-full max-w-2xl mx-auto overflow-hidden rounded-xl shadow-2xl border border-stone-800/50 bg-[#1e1e1e] font-mono text-sm leading-relaxed">

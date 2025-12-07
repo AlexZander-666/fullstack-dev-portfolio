@@ -21,6 +21,8 @@ Copy `.env.example` to `.env` and provide:
 |-----|-------------|
 | `PORT` | Optional port override (defaults to 5000). |
 | `MONGODB_URI` | MongoDB connection string (MongoDB Atlas recommended). |
+| `MONGODB_SEEDLIST` | Optional comma-separated host list (IP or host:port) to bypass DNS. |
+| `MONGODB_REPLICA_SET` | Optional replica set name override (defaults to Atlas shard name). |
 | `JWT_SECRET` | Secret used to sign auth tokens. |
 | `JWT_EXPIRES_IN` | Token lifetime (e.g. `7d`). |
 | `CORS_ORIGIN` | Allowed frontend origin (local dev uses `http://localhost:3000`). |
@@ -43,9 +45,14 @@ src/
 ## Deployment
 
 - Use `scripts/create-eb-bundle.ps1` to zip `dist/`, `package.json`, `Procfile`,
-  and `.ebextensions` for Elastic Beanstalk.
+  `.ebextensions`, and `.platform` for Elastic Beanstalk.
 - GitHub Actions workflow `.github/workflows/deploy-backend.yml` automates the
   same packaging pipeline and uploads directly when pushing to `main`.
+
+### Elastic Beanstalk hardening
+- `.platform/hooks/prebuild/00-install-node.sh` pins Node.js 20.x / npm 10.x before build.
+- `.platform/hooks/postdeploy/00-healthcheck.sh` curls `/api/health` (5 tries) and aborts deploy on failure.
+- `.platform/nginx/conf.d/custom.conf` fixes Nginx `types_hash` warnings, standardizes log format, and blocks common PHP/probe paths.
 
 Further deployment instructions are documented in
 [`docs/deployment/aws.md`](../docs/deployment/aws.md).

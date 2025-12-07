@@ -59,10 +59,12 @@ app.use((req, _res, next) => {
 
 // 健康检查路由 - Railway 默认检查根路径
 app.get("/", (req, res) => {
+  logger.info(`Health check received from ${req.ip}`);
   res.json({ success: true, data: { status: "ok", service: "zbw-life-api", timestamp: new Date().toISOString() } });
 });
 
 app.get("/api/health", (req, res) => {
+  logger.info(`API health check received from ${req.ip}`);
   res.json({ success: true, data: { status: "ok", timestamp: new Date().toISOString() } });
 });
 

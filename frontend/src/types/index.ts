@@ -32,7 +32,7 @@ export interface User {
   _id: string;
   email: string;
   name: string;
-  role: "admin";
+  role: "admin" | "user";
   createdAt: string;
   updatedAt: string;
 }
@@ -92,7 +92,6 @@ export interface LoginRequest {
 
 // 登录响应类型
 export interface LoginResponse {
-  token: string;
   user: User;
 }
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Plus, Edit, Trash2, Star, ExternalLink } from "lucide-react";
 import type { Project } from "@/types";
 
@@ -79,11 +80,15 @@ export default function AdminProjectsPage() {
           >
             {/* Image Placeholder */}
             {project.imageUrl ? (
-              <img
-                src={project.imageUrl}
-                alt={project.name}
-                className="w-full h-40 object-cover"
-              />
+              <div className="relative w-full h-40">
+                <Image
+                  src={project.imageUrl}
+                  alt={project.name}
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 320px, (min-width: 768px) 300px, 100vw"
+                />
+              </div>
             ) : (
               <div className="w-full h-40 bg-stone-100 flex items-center justify-center">
                 <span className="text-stone-400">无图片</span>

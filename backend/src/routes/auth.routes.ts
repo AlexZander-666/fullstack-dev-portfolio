@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { login, getCurrentUser, refreshToken } from "../controllers/auth.controller";
+import { login, getCurrentUser, refreshToken, logout } from "../controllers/auth.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { loginSchema } from "../schemas/auth.schema";
+import { authLimiter } from "../middleware/rateLimit.middleware";
 
 const router = Router();
 
@@ -11,7 +12,7 @@ const router = Router();
  * @desc    管理员登录
  * @access  Public
  */
-router.post("/login", validate(loginSchema), login);
+router.post("/login", authLimiter, validate(loginSchema), login);
 
 /**
  * @route   GET /api/auth/me
@@ -26,5 +27,7 @@ router.get("/me", authenticate, getCurrentUser);
  * @access  Private
  */
 router.post("/refresh", authenticate, refreshToken);
+
+router.post("/logout", authenticate, logout);
 
 export default router;

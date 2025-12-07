@@ -20,8 +20,8 @@ export const authenticate = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // 从 header 中提取 token
-    const token = extractTokenFromHeader(req.headers.authorization);
+    const token =
+      req.cookies?.token || extractTokenFromHeader(req.headers.authorization);
 
     if (!token) {
       throw UnauthorizedError("No token provided");
@@ -52,7 +52,8 @@ export const optionalAuthenticate = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = extractTokenFromHeader(req.headers.authorization);
+    const token =
+      req.cookies?.token || extractTokenFromHeader(req.headers.authorization);
 
     if (token) {
       const decoded = verifyToken(token);

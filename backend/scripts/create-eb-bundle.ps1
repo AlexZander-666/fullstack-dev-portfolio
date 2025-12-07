@@ -42,6 +42,10 @@ if (Test-Path ".ebextensions") {
     Copy-Item -Recurse ".ebextensions" "$tempDir/"
 }
 
+if (Test-Path ".platform") {
+    Copy-Item -Recurse ".platform" "$tempDir/"
+}
+
 Write-Host "✓ Files copied" -ForegroundColor Green
 
 # 创建 ZIP - 使用 .NET 方法确保跨平台兼容性

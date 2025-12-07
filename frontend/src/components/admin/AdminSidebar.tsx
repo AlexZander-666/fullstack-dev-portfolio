@@ -39,13 +39,15 @@ export default function AdminSidebar() {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  aria-label={item.label}
+                  aria-current={isActive ? "page" : undefined}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
                     isActive
                       ? "bg-[#d97757] text-white"
                       : "text-stone-400 hover:bg-stone-800 hover:text-white"
                   }`}
                 >
-                  <item.icon size={20} />
+                  <item.icon size={20} aria-hidden="true" />
                   <span>{item.label}</span>
                 </Link>
               </li>

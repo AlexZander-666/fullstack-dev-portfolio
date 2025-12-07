@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import MarkdownContent from "@/components/blog/MarkdownContent";
 import type { Post } from "@/types";
@@ -188,11 +189,16 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         {/* Cover Image */}
         {post.coverImage && (
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            className="w-full h-64 md:h-96 object-cover rounded-2xl mb-8"
-          />
+          <div className="relative w-full h-64 md:h-96 mb-8">
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              className="object-cover rounded-2xl"
+              sizes="(min-width: 1024px) 768px, 100vw"
+              priority
+            />
+          </div>
         )}
 
         {/* Content */}

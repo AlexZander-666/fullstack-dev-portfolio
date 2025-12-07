@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import logger from "../utils/logger";
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -17,7 +18,7 @@ export const errorHandler = (
   const message = err.message || "An unexpected error occurred";
 
   // 记录错误日志
-  console.error(`[${new Date().toISOString()}] ${code}: ${message}`, {
+  logger.error(`[${new Date().toISOString()}] ${code}: ${message}`, {
     path: req.path,
     method: req.method,
     stack: process.env.NODE_ENV === "development" ? err.stack : undefined,

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ExternalLink, Github } from "lucide-react";
 import type { Project } from "@/types";
 
@@ -11,10 +12,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       {/* Project Image */}
       {project.imageUrl && (
         <div className="relative h-48 overflow-hidden bg-stone-100">
-          <img
+          <Image
             src={project.imageUrl}
             alt={`${project.name} 项目截图`}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(min-width: 1024px) 384px, (min-width: 768px) 320px, 100vw"
           />
           {project.featured && (
             <span className="absolute top-3 right-3 bg-[#d97757] text-white text-xs font-semibold px-2 py-1 rounded-full">
