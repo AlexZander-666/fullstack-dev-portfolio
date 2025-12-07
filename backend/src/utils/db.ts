@@ -35,37 +35,110 @@ const resolveWithDoH = async (hostname: string): Promise<string | null> => {
 };
 
 /**
- * 将 mongodb+srv:// 或标准连接字符串中的主机名替换为 IP 地址
+ * 解析 SRV 记录获取 MongoDB 主机列表
+ */
+const resolveSrvWithDoH = async (srvHostname: string): Promise<string[]> => {
+  try {
+    const srvName = `_mongodb._tcp.${srvHostname}`;
+    console.log(`🔍 Resolving SRV record: ${srvName}`);
+    
+    const response = await fetch(
+      `https://cloudflare-dns.com/dns-query?name=${srvName}&type=SRV`,
+      { headers: { Accept: "application/dns-json" } }
+    );
+    const data = (await response.json()) as { Answer?: Array<{ type: number; data: string }> };
+    
+    if (data.Answer && data.Answer.length > 0) {
+      const hosts: string[] = [];
+      for (const record of data.Answer) {
+        if (record.type === 33) { // SRV record
+          // SRV data format: "priority weight port target"
+          const parts = record.data.split(" ");
+          if (parts.length >= 4) {
+            const target = parts[3].replace(/\.$/, ""); // Remove trailing dot
+            const port = parts[2];
+            hosts.push(`${target}:${port}`);
+            console.log(`✅ SRV found: ${target}:${port}`);
+          }
+        }
+      }
+      return hosts;
+    }
+  } catch (error) {
+    console.error(`❌ SRV resolution failed:`, error);
+  }
+  return [];
+};
+
+/**
+ * 将 mongodb+srv:// 连接字符串转换为标准格式，使用 DoH 解析
  */
 const resolveMongoUri = async (uri: string): Promise<string> => {
-  // 匹配所有 MongoDB Atlas 主机名
-  const hostRegex = /(cluster0-shard-00-\d{2}\.6bpjrj6\.mongodb\.net)/g;
-  const matches = uri.match(hostRegex);
+  console.log("🔧 Starting MongoDB URI resolution...");
   
-  if (!matches) {
-    console.log("⚠️ No MongoDB hostnames found to resolve");
+  // 检查是否是 SRV 格式
+  if (!uri.startsWith("mongodb+srv://")) {
+    console.log("⚠️ Not an SRV URI, skipping DoH resolution");
     return uri;
   }
 
-  const uniqueHosts = [...new Set(matches)];
-  let resolvedUri = uri;
-
-  console.log(`🔍 Resolving ${uniqueHosts.length} MongoDB hosts via DoH...`);
-
-  for (const hostname of uniqueHosts) {
-    const ip = await resolveWithDoH(hostname);
-    if (ip) {
-      resolvedUri = resolvedUri.split(hostname).join(ip);
+  try {
+    // 解析 URI: mongodb+srv://user:pass@host/db?options
+    const srvMatch = uri.match(/mongodb\+srv:\/\/([^:]+):([^@]+)@([^\/]+)\/(.+)/);
+    if (!srvMatch) {
+      console.log("⚠️ Could not parse SRV URI format");
+      return uri;
     }
-  }
 
-  // 如果使用 IP 地址，需要允许无效的主机名（因为 SSL 证书是颁发给域名的）
-  if (resolvedUri !== uri && !resolvedUri.includes("tlsAllowInvalidHostnames")) {
-    const separator = resolvedUri.includes("?") ? "&" : "?";
-    resolvedUri += `${separator}tlsAllowInvalidHostnames=true`;
-  }
+    const [, user, pass, srvHost, dbAndOptions] = srvMatch;
+    console.log(`📍 SRV host: ${srvHost}`);
 
-  return resolvedUri;
+    // 使用 DoH 解析 SRV 记录
+    const hosts = await resolveSrvWithDoH(srvHost);
+    
+    if (hosts.length === 0) {
+      console.log("⚠️ No SRV records found, trying direct host resolution...");
+      // 尝试直接解析主机名
+      const ip = await resolveWithDoH(srvHost);
+      if (ip) {
+        const newUri = `mongodb://${user}:${pass}@${ip}:27017/${dbAndOptions}&directConnection=true&tls=true&tlsAllowInvalidHostnames=true`;
+        console.log("✅ Using direct IP connection");
+        return newUri;
+      }
+      return uri;
+    }
+
+    // 解析每个主机的 IP 地址
+    const resolvedHosts: string[] = [];
+    for (const hostPort of hosts) {
+      const [hostname, port] = hostPort.split(":");
+      const ip = await resolveWithDoH(hostname);
+      if (ip) {
+        resolvedHosts.push(`${ip}:${port}`);
+      } else {
+        resolvedHosts.push(hostPort); // 保留原始主机名
+      }
+    }
+
+    // 构建标准 MongoDB URI
+    const hostList = resolvedHosts.join(",");
+    
+    // 从原始 options 中提取 replicaSet 名称（如果有的话）
+    let options = dbAndOptions.includes("?") ? dbAndOptions.split("?")[1] : "";
+    const dbName = dbAndOptions.split("?")[0];
+    
+    // 添加必要的选项
+    const extraOptions = "tls=true&tlsAllowInvalidHostnames=true&authSource=admin";
+    options = options ? `${options}&${extraOptions}` : extraOptions;
+    
+    const newUri = `mongodb://${user}:${pass}@${hostList}/${dbName}?${options}`;
+    console.log(`✅ Resolved URI with ${resolvedHosts.length} hosts`);
+    
+    return newUri;
+  } catch (error) {
+    console.error("❌ URI resolution error:", error);
+    return uri;
+  }
 };
 
 export const connectDB = async (): Promise<void> => {
