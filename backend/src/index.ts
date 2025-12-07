@@ -83,8 +83,9 @@ const startServer = async () => {
     // 连接数据库
     await connectDB();
     
-    app.listen(PORT, () => {
-      logger.info(`🚀 Server running on http://localhost:${PORT}`);
+    // 绑定到 0.0.0.0 以接受外部连接（Railway 等容器环境需要）
+    app.listen(Number(PORT), "0.0.0.0", () => {
+      logger.info(`🚀 Server running on http://0.0.0.0:${PORT}`);
       logger.info(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
     });
   } catch (error) {
