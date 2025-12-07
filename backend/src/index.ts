@@ -57,7 +57,11 @@ app.use((req, _res, next) => {
   next();
 });
 
-// 健康检查路由
+// 健康检查路由 - Railway 默认检查根路径
+app.get("/", (req, res) => {
+  res.json({ success: true, data: { status: "ok", service: "zbw-life-api", timestamp: new Date().toISOString() } });
+});
+
 app.get("/api/health", (req, res) => {
   res.json({ success: true, data: { status: "ok", timestamp: new Date().toISOString() } });
 });
